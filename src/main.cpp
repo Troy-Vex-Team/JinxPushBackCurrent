@@ -15,6 +15,10 @@ const int DRIVE_SPEED = 110;
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 110;
 
+pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
+pros::adi::Pneumatics lift('a', true);
+pros::adi::Pneumatics descorer('g', false);
+
 
 // Chassis constructor
 ez::Drive chassis(

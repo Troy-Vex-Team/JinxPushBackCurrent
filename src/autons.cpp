@@ -1,4 +1,5 @@
 #include "main.h"
+#include "EZ-Template/util.hpp"
 using namespace pros;
 using namespace ez;
 
@@ -8,11 +9,10 @@ using namespace ez;
 /////
 
 // These are out of 127
+const int IN_SPEED = 100;
 const int DRIVE_SPEED = 110;
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 110;
-const int IN_SPEED = 100;
-
 
 ///
 // Constants
@@ -375,18 +375,6 @@ void measure_offsets() {
 // . . .
 // Make your own autonomous functions here!
 
-void intake_move(){
-  intake.move(IN_SPEED);
-}
-
-void intake_stop(){
-  intake.move(0);
-  intake.brake();
-}
-
-void outtake(){
-  intake.move(-IN_SPEED);
-}
 
 
 void red_left_corner(){

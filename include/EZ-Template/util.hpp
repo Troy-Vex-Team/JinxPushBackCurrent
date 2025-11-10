@@ -22,9 +22,6 @@ using namespace okapi::literals;
  * Controller.
  */
 extern pros::Controller master;
-extern pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
-extern pros::adi::Pneumatics lift('a', true);
-extern pros::adi::Pneumatics descorer('g', false);
 
 namespace ez {
 
