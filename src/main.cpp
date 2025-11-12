@@ -15,6 +15,7 @@ const int IN_SPEED = 100;
 const int DRIVE_SPEED = 110;
 const int TURN_SPEED = 90;
 const int SWING_SPEED = 110;
+const int timing = 1000;
 
 pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
 pros::adi::Pneumatics lift('a', true);
@@ -172,12 +173,12 @@ void autonomous() {
   */
   
   // choose 1, comment the rest
-  red_left();
-  red_right();
-  blue_left();
-  blue_right();
+  //red_left();
+  //red_right();
+  //blue_left();
+  //blue_right();
 
-
+  pushback_auton_full();
   //ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
 
@@ -299,6 +300,107 @@ void outtake(){
   intake.move(-IN_SPEED);
 }
 
+void pushback_auton_full(){
+  // Intake the first one 
+  intake_move();
+  chassis.pid_drive_set(5_in, DRIVE_SPEED, true);
+  delay(timing);
+  intake_stop();
+
+  // Drive to first group of blocks
+  chassis.pid_drive_set(18_in, DRIVE_SPEED, true);
+  delay(timing);
+
+  // Intake the 3 
+  intake_move();
+  delay(timing);
+  intake_stop();
+
+  // Turn towards the first goal
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  delay(timing);
+
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  delay(timing);
+
+  // Outake three
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  intake_stop();
+  lift.set_value(false);
+  
+  
+  // Move to next goal
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  delay(timing);
+
+  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
+  delay(timing);
+
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  delay(timing);
+
+  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
+  delay(timing);
+
+  chassis.pid_turn_set(-45_deg, TURN_SPEED);
+  delay(timing);
+
+  // Outtake one
+  outtake();
+  delay(timing);
+  intake_stop();
+
+  // Take the 3 group 
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  delay(timing);
+
+  chassis.pid_drive_set(9_in, DRIVE_SPEED, true);  // All these angles and movements need to be tested with robot to be accurate
+  delay(timing);
+
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
+
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  delay(timing);
+
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+  delay(timing);
+
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_wait();
+
+  chassis.pid_drive_set(16_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  chassis.pid_wait();
+
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+
+  // Intake 3
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
+
+  // Move to dropper
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  chassis.pid_wait();
+
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  
+  // Pneumatic function
+  lift.set_value(true);
+  outtake();
+  intake_stop();
+  lift.set_value(false);
+  
+
+}
 
 void opcontrol() {
   // This is preference to what you like to drive on
