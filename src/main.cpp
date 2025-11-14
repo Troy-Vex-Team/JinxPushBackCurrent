@@ -20,6 +20,7 @@ const int timing = 500;
 pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
 pros::adi::Pneumatics lift('a', true);
 pros::adi::Pneumatics descorer('g', false);
+pros::Optical optical(1);
 
 
 // Chassis constructor
@@ -131,7 +132,18 @@ void competition_initialize() {
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void intake_move(){
+
+ void checkOptical(){
+  while (true){
+    ez::screen_print("Brightness: " + std::to_string(optical.get_brightness()), 0);
+    ez::screen_print("Hue: " + std::to_string(optical.get_hue()), 1);
+    ez::screen_print("R: " + std::to_string(optical.get_rgb().red), 2);
+    ez::screen_print("G: " + std::to_string(optical.get_rgb().green), 3);
+    ez::screen_print("B: " + std::to_string(optical.get_rgb().blue), 4);
+  }
+ }
+
+ void intake_move(){
   intake.move(IN_SPEED);
 }
 
