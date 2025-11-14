@@ -144,103 +144,94 @@ void outtake(){
   intake.move(-IN_SPEED);
 }
 
+void intake_firstBlock(){
+  intake_move();
+  chassis.pid_drive_set(3_in, DRIVE_SPEED, true);
+}
+
+void intake_3(){
+  intake_move();
+  chassis.pid_drive_set(18_in, DRIVE_SPEED, true);
+  intake_stop();
+}
+
+void firstGoal(){
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  intake_stop();
+  lift.set_value(false);
+}
+
+void secondMiddle(){
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+
+  outtake();
+  delay(timing);
+  intake_stop();
+}
+
+void intake_3Right(){
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  intake_move();
+  chassis.pid_drive_set(9_in, DRIVE_SPEED, true);
+  delay(timing);
+  intake_stop();
+}
+
+void matchloader(){
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_drive_set(16_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  intake_move();
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  delay(timing);
+  intake_stop();
+}
+
+void longGoal(){
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
+  lift.set_value(false);
+}
+
+
  void pushback_auton_full(){
   // Intake the first one 
-  intake_move();
-  chassis.pid_drive_set(5_in, DRIVE_SPEED, true);
-  delay(timing);
-  intake_stop();
+  intake_firstBlock();
 
   // Drive to first group of blocks
+  intake_3();
   
-  chassis.pid_drive_set(18_in, DRIVE_SPEED, true);
-  delay(timing);
-
-  // Intake the 3 
-  intake_move();
-  delay(timing);
-  intake_stop();
-  // Turn towards the first goal
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  delay(timing);
-
-  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
-  delay(timing);
-  // Outake three
-  lift.set_value(true);
-  outtake();
-  delay(timing);
-  intake_stop();
-  lift.set_value(false);
+  // Turn towards the first middle goal and outtake 3
+  firstGoal();
   
   
-  // Move to next goal
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  delay(timing);
+  // Move to second middle goal and outtake 1
+  secondMiddle();
 
-  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
-  delay(timing);
 
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  delay(timing);
+  // Take the 3 group on the right side of the field
+  intake_3Right();
 
-  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
-  delay(timing);
+  // Takes 3 blocks from matchloader, moves in straight movements rather than angled
+  matchloader();
 
-  chassis.pid_turn_set(-45_deg, TURN_SPEED);
-  delay(timing);
-
-  // Outtake one
-  outtake();
-  delay(timing);
-  intake_stop();
-
-  // Take the 3 group 
-  chassis.pid_turn_set(180_deg, TURN_SPEED);
-  delay(timing);
-
-  chassis.pid_drive_set(9_in, DRIVE_SPEED, true);  // All these angles and movements need to be tested with robot to be accurate
-  delay(timing);
-
-  intake_move();
-  pros::delay(timing);
-  intake_stop();
-
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  delay(timing);
-
-  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
-  delay(timing);
-
-  chassis.pid_turn_set(-90_deg, TURN_SPEED);
-  chassis.pid_wait();
-
-  chassis.pid_drive_set(16_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  chassis.pid_wait();
-
-  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-
-  // Intake 3
-  intake_move();
-  pros::delay(timing);
-  intake_stop();
-
-  // Move to dropper
-  chassis.pid_turn_set(180_deg, TURN_SPEED);
-  chassis.pid_wait();
-
-  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  
-  // Pneumatic function
-  lift.set_value(true);
-  outtake();
-  intake_stop();
-  lift.set_value(false);
+  // Move to dropper and score 6 blocks
+  longGoal();
 
 }
 
