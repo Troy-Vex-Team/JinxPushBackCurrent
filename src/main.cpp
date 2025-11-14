@@ -11,7 +11,7 @@ using namespace ez;
 /////
 
 
-const int IN_SPEED = 65;
+const int IN_SPEED = 120;
 const int DRIVE_SPEED = 65;
 const int TURN_SPEED = 65;
 const int SWING_SPEED = 65;
