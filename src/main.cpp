@@ -11,10 +11,10 @@ using namespace ez;
 /////
 
 
-const int IN_SPEED = 80;
-const int DRIVE_SPEED = 80;
-const int TURN_SPEED = 80;
-const int SWING_SPEED = 80;
+const int IN_SPEED = 65;
+const int DRIVE_SPEED = 65;
+const int TURN_SPEED = 65;
+const int SWING_SPEED = 65;
 const int timing = 500;
 
 pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
@@ -144,20 +144,18 @@ void outtake(){
   intake.move(-IN_SPEED);
 }
 
-void intake_firstBlock(){
-  intake_move();
-  chassis.pid_drive_set(3_in, DRIVE_SPEED, true);
-}
-
 void intake_3(){
   intake_move();
   chassis.pid_drive_set(18_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
   intake_stop();
 }
 
 void firstGoal(){
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  chassis.pid_turn_set(70_deg, TURN_SPEED);
+  chassis.pid_wait();
   chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
   lift.set_value(true);
   outtake();
   delay(timing);
@@ -166,78 +164,61 @@ void firstGoal(){
 }
 
 void secondMiddle(){
-  chassis.pid_turn_set(90_deg, TURN_SPEED);
-  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
-  chassis.pid_turn_set(-90_deg, TURN_SPEED);
-  chassis.pid_drive_set(7_in, DRIVE_SPEED, true);
-  chassis.pid_turn_set(-90_deg, TURN_SPEED);
-
+  intake_move();
+  chassis.pid_drive_set(-15_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(110_deg, TURN_SPEED);
+  chassis.pid_wait();
+  intake_move();
+  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(-35_deg, TURN_SPEED);
   outtake();
-  delay(timing);
-  intake_stop();
+  chassis.pid_wait();
+  
 }
 
 void intake_3Right(){
-  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  chassis.pid_drive_set(-20_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(190_deg, TURN_SPEED);
+  chassis.pid_wait();
   intake_move();
-  chassis.pid_drive_set(9_in, DRIVE_SPEED, true);
-  delay(timing);
-  intake_stop();
+  chassis.pid_drive_set(35_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+
 }
 
-void matchloader(){
-  chassis.pid_turn_set(45_deg, TURN_SPEED);
-  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
-  chassis.pid_turn_set(-90_deg, TURN_SPEED);
-  chassis.pid_drive_set(16_in, DRIVE_SPEED, true);
-  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
-  intake_move();
-  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
-  delay(timing);
-  intake_stop();
-}
-
-void longGoal(){
-  chassis.pid_turn_set(180_deg, TURN_SPEED);
-  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
-  lift.set_value(true);
-  outtake();
-  delay(timing);
-  intake_stop();
+void longGoal() {
   chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
-  lift.set_value(false);
+  chassis.pid_wait();
+  chassis.pid_turn_set(-180_deg, TURN_SPEED);
+  chassis.pid_wait();
+  intake_move();
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
 }
-
 
  void pushback_auton_full(){
-  // Intake the first one 
-  intake_firstBlock();
-
   // Drive to first group of blocks
   intake_3();
   
   // Turn towards the first middle goal and outtake 3
+
   firstGoal();
   
   
   // Move to second middle goal and outtake 1
   secondMiddle();
 
-
   // Take the 3 group on the right side of the field
   intake_3Right();
 
-  // Takes 3 blocks from matchloader, moves in straight movements rather than angled
-  matchloader();
-
-  // Move to dropper and score 6 blocks
-  longGoal();
 
 }
 
 
 //intake 3 blocks on left and outtake in left goal
- void red_left_simple()
+ void left_simple()
 {
   intake_move();
   // intake the blocks
@@ -261,30 +242,6 @@ void longGoal(){
   chassis.pid_turn_set(-160_deg, TURN_SPEED);
 }
 
-//intake 3 blocks on left and outtake in left goal
- void blue_left_simple()
-{
-  intake_move();
-  // intake the blocks
-  chassis.pid_drive_set(27_in, 40, false);
-  chassis.pid_wait();
-  chassis.pid_drive_set(-15_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(-75_deg, TURN_SPEED);
-  chassis.pid_wait();
-  chassis.pid_drive_set(25_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(30_deg, TURN_SPEED);
-  chassis.pid_wait();
-  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
-
-  //outtake to goal
-  outtake();
-  pros::delay(1000);
-  chassis.pid_drive_set(-12_in, DRIVE_SPEED, true);
-  chassis.pid_wait();
-  chassis.pid_turn_set(-160_deg, TURN_SPEED);
-}
 
 
 
@@ -324,10 +281,12 @@ void autonomous() {
   */
   
   // choose 1, comment the rest
-  red_left_simple();
+  //left_simple();
   //red_right();
   //blue_left();
   //blue_right();
+  pushback_auton_full();
+
 
   //pushback_auton_full();
   //ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
