@@ -244,10 +244,58 @@ void outtake(){
 
 }
 
- void red_left()
+
+//intake 3 blocks on left and outtake in left goal
+ void red_left_simple()
 {
-  //fill code here
+  intake_move();
+  // intake the blocks
+  chassis.pid_drive_set(27_in, 40, false);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-15_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(-75_deg, TURN_SPEED);
+  chassis.pid_wait();
+  chassis.pid_drive_set(25_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(30_deg, TURN_SPEED);
+  chassis.pid_wait();
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+
+  //outtake to goal
+  outtake();
+  pros::delay(1000);
+  chassis.pid_drive_set(-12_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(-160_deg, TURN_SPEED);
 }
+
+//intake 3 blocks on left and outtake in left goal
+ void blue_left_simple()
+{
+  intake_move();
+  // intake the blocks
+  chassis.pid_drive_set(27_in, 40, false);
+  chassis.pid_wait();
+  chassis.pid_drive_set(-15_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(-75_deg, TURN_SPEED);
+  chassis.pid_wait();
+  chassis.pid_drive_set(25_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(30_deg, TURN_SPEED);
+  chassis.pid_wait();
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+
+  //outtake to goal
+  outtake();
+  pros::delay(1000);
+  chassis.pid_drive_set(-12_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(-160_deg, TURN_SPEED);
+}
+
+
 
 void red_right()
 {
@@ -285,12 +333,12 @@ void autonomous() {
   */
   
   // choose 1, comment the rest
-  //red_left();
+  red_left_simple();
   //red_right();
   //blue_left();
   //blue_right();
 
-  pushback_auton_full();
+  //pushback_auton_full();
   //ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
 
@@ -421,7 +469,7 @@ void opcontrol() {
 
     //chassis.opcontrol_arcade_flipped(ez::SPLIT);
     // chassis.opcontrol_tank();  // Tank control
-    chassis.opcontrol_arcade_standard(ez::SINGLE);   // Standard split arcade
+    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
     // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     //chassis.opcontrol_arcade_standard(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
