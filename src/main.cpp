@@ -113,7 +113,7 @@ void initialize() {
   // Configure your chassis controls
   chassis.opcontrol_curve_buttons_toggle(false);   // Enables modifying the controller curve with buttons on the joysticks
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
-  chassis.opcontrol_curve_default_sets(0.0, 0.0); 
+  chassis.opcontrol_curve_default_set(0.0, 0.0); 
 
    // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
 
@@ -462,9 +462,66 @@ void sFirstML(){
   chassis.pid_turn_set(90_deg, TURN_SPEED);
   chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
   intake_move();
+  delay(timing);
+  intake_stop();
   chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
   intake_move();
   delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(-135_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+  outake();
+  delay(timing);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(15_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-45_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(24_inch, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(-90_deg, DRIVE_SPEED, true);
+  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(72_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(72_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg,TURN_SPEED, true);
+  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(180_deg_deg, TURN_SPEED);
+  chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  lift.set_value(false);
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_drive_set(72_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  lift.set_value(false);
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(135_deg, TURN_SPEED);
+  chassis.pid_drive_set(66_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-45_deg, TURN_SPEED);
 } 
 
 void cross(){
