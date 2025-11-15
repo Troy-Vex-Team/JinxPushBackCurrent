@@ -609,7 +609,7 @@ void opcontrol() {
 
     //chassis.opcontrol_arcade_flipped(ez::SPLIT);
     // chassis.opcontrol_tank();  // Tank control
-    //chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
     // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     //chassis.opcontrol_arcade_standard(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
@@ -635,7 +635,7 @@ void opcontrol() {
     leftDrive.move(static_cast<int>(left));
     rightDrive.move(static_cast<int>(right));
     */
-
+    /*
         // === SUPER AGGRESSIVE SPLIT ARCADE FOR OPCONTROL ===
 
     // You can tune these 3 numbers:
@@ -665,7 +665,7 @@ void opcontrol() {
       left  = left  * (GLOBAL_CAP / maxMag);
       right = right * (GLOBAL_CAP / maxMag);
     }
-
+    */
     // Send to motors
     leftDrive.move(static_cast<int>(left));
     rightDrive.move(static_cast<int>(right));
