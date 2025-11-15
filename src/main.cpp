@@ -21,7 +21,7 @@ pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
 pros::adi::Pneumatics lift('a', false);
 pros::adi::Pneumatics descorer('h', false);
 pros::Optical optical(1);
-pros::adi::Pneumatics matchLoader('f', false);
+pros::adi::Pneumatics matchL('f', false);
 
 // Chassis constructor
 ez::Drive chassis(
@@ -321,6 +321,16 @@ void sFirstML(){
   
 }
 
+void cross(){
+  chassis.pid_turn_set(-90_deg, SWING_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(90_deg, SWING_SPEED, true);
+  chassis.pid_wait();
+  
+}
+
 void skills(){
   sFirstML();
 }
@@ -436,14 +446,14 @@ void opcontrol() {
   // This is preference to what you like to drive on
   lift.set_value(true);
   descorer.set_value(false);
-  matchLoader.set_value(true);
+  matchL.set_value(true);
   bool liftFlag = true;
   bool descoreFlag = false;
-  bool matchLFlag = true;
+  bool matchFlag = true;
 
   bool last_lift_state = true; 
   bool last_descore_state = false; 
-  bool last_matchLoader_state = false;
+  bool last_matchL_state = false;
   // This is preference to what you like to drive on
   chassis.drive_brake_set(MOTOR_BRAKE_COAST);
 
@@ -490,11 +500,11 @@ void opcontrol() {
 
     bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
 
-    if (current_matchLoader_state && !last_matchLoader_state){
-      matchLFlag = !matchLFlag;
-      matchLoader.set_value(matchLFlag);
+    if (current_matchLoader_state && !last_matchL_state){
+      matchFlag = !matchFlag;
+      matchL.set_value(matchFlag);
     }
-    last_matchLoader_state = current_matchLoader_state;
+    last_matchL_state = current_matchLoader_state;
     
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
