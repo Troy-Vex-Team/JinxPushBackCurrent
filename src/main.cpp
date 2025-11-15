@@ -11,11 +11,15 @@ using namespace ez;
 /////
 
 
-const int IN_SPEED = 120;
-const int DRIVE_SPEED = 65;
-const int TURN_SPEED = 65;
-const int SWING_SPEED = 65;
+const int IN_SPEED = 127;
+const int DRIVE_SPEED = 120;
+const int TURN_SPEED = 120;
+const int SWING_SPEED = 120;
 const int timing = 500;
+
+
+pros::MotorGroup leftDrive({-9, -20, -16});
+pros::MotorGroup rightDrive({7, 10, 2});
 
 pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
 pros::adi::Pneumatics lift('a', false);
@@ -23,15 +27,38 @@ pros::adi::Pneumatics descorer('h', false);
 pros::Optical optical(1);
 pros::adi::Pneumatics matchL('f', false);
 
+
 // Chassis constructor
+
 ez::Drive chassis(
     // These are your drive motors, the first motor is used for sensing!
-    {-9, -7, -16},     // Left Chassis Ports (negative port will reverse it!)
-    {8, 10, 2},  // Right Chassis Ports (negative port will reverse it!)
+    {-9, -20, -16},     // Left Chassis Ports (negative port will reverse it!)
+    {7, 10, 2},  // Right Chassis Ports (negative port will reverse it!)
 
     5,      // IMU Port
     3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
     450);   // Wheel RPM = cartridge * (motor gear / wheel gear)
+
+  
+
+/*
+ez::Drive chassis(
+    // These are your drive motors, the first motor is used for sensing!
+    {-9, -8, -7},     // Left Chassis Ports (negative port will reverse it!)
+    {5, 4, 3},  // Right Chassis Ports (negative port will reverse it!)
+
+    4.125,      // IMU Port
+    3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
+    450); 
+  
+ 
+pros::MotorGroup intake({10,1}, pros::MotorGearset::blue);
+pros::adi::Pneumatics lift('a', false);
+pros::adi::Pneumatics descorer('h', false);
+pros::Optical optical(1);
+pros::adi::Pneumatics matchL('f', false);
+*/
+  
 
 // Uncomment the trackers you're using here!
 // - `8` and `9` are smart ports (making these negative will reverse the sensor)
@@ -47,6 +74,27 @@ ez::tracking_wheel vert_tracker(17, 2.00, 5.5);   // This tracking wheel is para
  * All other competition modes are blocked by initialize; it is recommended
  * to keep execution time for this mode under a few seconds.
  */
+
+/*
+void default_constants() {
+  // DRIVE
+  chassis.pid_drive_constants_forward_set(18.0, 0.0, 10.0);
+  chassis.pid_drive_constants_backward_set(15.0, 0.0, 10.0);
+
+  // TURN
+  //chassis.pid_turn_constants_set(18.0, 0.0, 10.0, 0.0);
+
+  // SWING
+  //chassis.pid_swing_constants_set(10.0, 0.0, 20.0);
+  // MAX SPEEDS
+  //chassis.pid_speed_max_set(127);
+
+}
+
+*/
+
+  
+
 void initialize() {
   // Print our branding over your terminal :D
   ez::ez_template_print();
@@ -65,7 +113,9 @@ void initialize() {
   // Configure your chassis controls
   chassis.opcontrol_curve_buttons_toggle(true);   // Enables modifying the controller curve with buttons on the joysticks
   chassis.opcontrol_drive_activebrake_set(0.0);   // Sets the active brake kP. We recommend ~2.  0 will disable.
-  chassis.opcontrol_curve_default_set(0.0, 0.0);  // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
+  chassis.opcontrol_curve_default_set(0.0, 6); 
+
+   // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
 
   // Set the drive to your own constants from autons.cpp!
   default_constants();
@@ -207,8 +257,13 @@ void longGoal() {
   chassis.pid_wait();
   chassis.pid_turn_set(-180_deg, TURN_SPEED);
   chassis.pid_wait();
-  intake_move();
+  outtake();
   chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+}
+
+void in5(){
+  chassis.pid_drive_set(5_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
 }
 
  void pushback_auton_full(){
@@ -221,7 +276,7 @@ void longGoal() {
   
   
   // Move to second middle goal and outtake 1
-  secondMiddle();
+  //secondMiddle();
 
   // Take the 3 group on the right side of the field
   //intake_3Right();
@@ -273,6 +328,8 @@ void blue_right()
   //fill code here
 }
 
+
+
 void autonomous() {
   chassis.pid_targets_reset();                // Resets PID targets to 0
   chassis.drive_imu_reset();                  // Reset gyro position to 0
@@ -298,13 +355,77 @@ void autonomous() {
   //red_right();
   //blue_left();
   //blue_right();
-  pushback_auton_full();
+  //pushback_auton_full();
+  in5();
 
 
   //pushback_auton_full();
   //ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
+/*
+void PID_tester(){
+ float kP = 2.0;   // How strong robot reacts to the size of the error
+ float kI = 0.0;   // Fixes small errors as the robot runs
+ float kD = 0.0;   // In a way, braking when the correction is too big
 
+
+ float error = 0.0;
+ float integral = 0.0;
+ float derivative = 0.0;
+ float prevError = 0.0;
+
+
+ float target = 100.0;
+ Imu imu_sensor(67); // whatever the port is
+ imu_sensor.reset();
+
+
+ chassis.drive_sensor_reset();
+
+
+
+ while (fabs(error)>1.0){
+   float current = (chassis.odom_x_get() + chassis.odom_y_get())/2.0;
+   error = target - current;
+   integral += error;
+   derivative = error - prevError;
+
+
+   if (fabs(error)>100){ // done if the inegral accumul
+     integral = 0;
+   }
+
+
+
+
+   float output = (kP * error) + (kI * integral) + (kD * derivative);
+
+
+   if (output > 127){
+     output = 127;
+   }
+   else if (output < -127){
+     output = -127;
+   }
+
+
+
+
+
+  
+   printf("IMU: %.2f degTarget: %.2f | Current: %.2f | Error: %.2f | Output: %.2f\n", imu_sensor.get_rotation(),target, current, error, output);
+
+
+   prevError = error;
+   delay(40);
+ }
+
+
+
+ delay(500);
+ printf("Final Position: %.2f\n |IMU: %.2f\n", (left_motors.get_position() + right_motors.get_position())/2.0, imu_sensor.get_rotation());
+}
+*/
 void sFirstML(){
   chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
   chassis.pid_turn_set(90_deg, TURN_SPEED);
@@ -315,11 +436,36 @@ void sFirstML(){
   chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
   chassis.pid_turn_set(180_deg, TURN_SPEED);
   chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  lift.set_value(true);
   outtake();
   delay(timing);
-
-  
-}
+  lift.set_value(false);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_drive_set(72_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  intake_stop();
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  lift.set_value(false);
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  intake_move();
+  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+} 
 
 void cross(){
   chassis.pid_turn_set(-90_deg, SWING_SPEED, true);
@@ -463,11 +609,67 @@ void opcontrol() {
 
     //chassis.opcontrol_arcade_flipped(ez::SPLIT);
     // chassis.opcontrol_tank();  // Tank control
-    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+    //chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
     // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     //chassis.opcontrol_arcade_standard(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
 
+    /*
+    const double SPEED_MULTIPLIER = 4.0;
+
+    // Joystick inputs
+    int power = master.get_analog(ANALOG_LEFT_Y);   // forward/back
+    int turn  = master.get_analog(ANALOG_RIGHT_X);  // turning
+
+    // Basic split arcade mixing
+    double left  = (power + turn) * SPEED_MULTIPLIER;
+    double right = (power - turn) * SPEED_MULTIPLIER;
+
+    // Clamp to valid motor range [-127, 127]
+    if (left > 127) left = 127;
+    if (left < -127) left = -127;
+    if (right > 127) right = 127;
+    if (right < -127) right = -127;
+
+    // Send to motors
+    leftDrive.move(static_cast<int>(left));
+    rightDrive.move(static_cast<int>(right));
+    */
+
+        // === SUPER AGGRESSIVE SPLIT ARCADE FOR OPCONTROL ===
+
+    // You can tune these 3 numbers:
+    const double DRIVE_MULT = 1.8;   // how fast you hit max speed forward/back
+    const double TURN_MULT  = 2.0;   // how fast you turn
+    const double GLOBAL_CAP = 127.0; // absolute max motor power
+
+    // Joystick inputs
+    int rawPower = master.get_analog(ANALOG_LEFT_Y);   // forward/back
+    int rawTurn  = master.get_analog(ANALOG_RIGHT_X);  // turning
+
+    // Optional: small deadzone so it doesn't drift
+    if (std::abs(rawPower) < 5) rawPower = 0;
+    if (std::abs(rawTurn)  < 5) rawTurn  = 0;
+
+    // Scale them up – this makes you reach full speed faster
+    double power = DRIVE_MULT * rawPower;
+    double turn  = TURN_MULT  * rawTurn;
+
+    // Mixed split-arcade
+    double left  = power + turn;
+    double right = power - turn;
+
+    // Normalize if either side exceeds the cap
+    double maxMag = std::max(std::abs(left), std::abs(right));
+    if (maxMag > GLOBAL_CAP) {
+      left  = left  * (GLOBAL_CAP / maxMag);
+      right = right * (GLOBAL_CAP / maxMag);
+    }
+
+    // Send to motors
+    leftDrive.move(static_cast<int>(left));
+    rightDrive.move(static_cast<int>(right));
+    
     // . . .
     // Put more user control code here!
     // . . .
@@ -500,7 +702,7 @@ void opcontrol() {
 
     bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
 
-    if (current_matchLoader_state & !last_matchL_state)){
+    if (current_matchLoader_state && !last_matchL_state){
       matchFlag = !matchFlag;
       matchL.set_value(matchFlag);
     }
