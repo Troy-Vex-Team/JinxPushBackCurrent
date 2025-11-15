@@ -500,7 +500,7 @@ void opcontrol() {
 
     bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
 
-    if (current_matchLoader_state && !last_matchL_state){
+    if (master.get_digital(pros::E_CONTROLLER_DIGITAL_Y)){
       matchFlag = !matchFlag;
       matchL.set_value(matchFlag);
     }
