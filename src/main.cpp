@@ -18,10 +18,10 @@ const int SWING_SPEED = 65;
 const int timing = 500;
 
 pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
-pros::adi::Pneumatics lift('a', true);
-pros::adi::Pneumatics descorer('g', false);
+pros::adi::Pneumatics lift('a', false);
+pros::adi::Pneumatics descorer('h', false);
 pros::Optical optical(1);
-
+pros::adi::Pneumatics matchLoader('f', false);
 
 // Chassis constructor
 ez::Drive chassis(
@@ -158,15 +158,16 @@ void outtake(){
 
 void intake_3(){
   intake_move();
-  chassis.pid_drive_set(18_in, DRIVE_SPEED, true);
+  delay(timing);
+  chassis.pid_drive_set(28_in, DRIVE_SPEED, true);
   chassis.pid_wait();
   intake_stop();
 }
 
 void firstGoal(){
-  chassis.pid_turn_set(70_deg, TURN_SPEED);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
   chassis.pid_wait();
-  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
   lift.set_value(true);
   outtake();
@@ -176,15 +177,15 @@ void firstGoal(){
 }
 
 void secondMiddle(){
-  intake_move();
-  chassis.pid_drive_set(-15_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(110_deg, TURN_SPEED);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
   chassis.pid_wait();
   intake_move();
-  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(-35_deg, TURN_SPEED);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
   outtake();
   chassis.pid_wait();
   
@@ -223,7 +224,7 @@ void longGoal() {
   secondMiddle();
 
   // Take the 3 group on the right side of the field
-  intake_3Right();
+  //intake_3Right();
 
 
 }
@@ -304,7 +305,25 @@ void autonomous() {
   //ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
 
+void sFirstML(){
+  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  intake_move();
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
+  chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  outtake();
+  delay(timing);
 
+  
+}
+
+void skills(){
+  sFirstML();
+}
 
 /**
  * Simplifies printing tracker values to the brain screen
@@ -375,7 +394,7 @@ void ez_template_extras() {
     //  When enabled:
     //  * use A and Y to increment / decrement the constants
     //  * use the arrow keys to navigate the constants
-    if (master.get_digital_new_press(DIGITAL_X))
+    if (master.get_digital_new_press(DIGITAL_A))
       chassis.pid_tuner_toggle();
 
     // Trigger the selected autonomous routine
@@ -417,11 +436,14 @@ void opcontrol() {
   // This is preference to what you like to drive on
   lift.set_value(true);
   descorer.set_value(false);
+  matchLoader.set_value(true);
   bool liftFlag = true;
   bool descoreFlag = false;
+  bool matchLFlag = true;
 
   bool last_lift_state = true; 
   bool last_descore_state = false; 
+  bool last_matchLoader_state = false;
   // This is preference to what you like to drive on
   chassis.drive_brake_set(MOTOR_BRAKE_COAST);
 
@@ -465,6 +487,14 @@ void opcontrol() {
     
     }
     last_descore_state = current_descore_state;
+
+    bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
+
+    if (current_matchLoader_state && !last_matchLoader_state){
+      matchLFlag = !matchLFlag;
+      matchLoader.set_value(matchLFlag);
+    }
+    last_matchLoader_state = current_matchLoader_state;
     
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
