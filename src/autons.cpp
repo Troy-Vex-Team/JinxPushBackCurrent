@@ -17,6 +17,7 @@ const int SWING_SPEED = 110;
 ///
 // Constants
 ///
+/*
 void default_constants() {
   // P, I, D, and Start I
   chassis.pid_drive_constants_set(70.0, 0.0, 110.0);         // Fwd/rev constants, used for odom and non odom motions
@@ -52,6 +53,7 @@ void default_constants() {
   chassis.pid_angle_behavior_set(ez::shortest);  // Changes the default behavior for turning, this defaults it to the shortest path there
 }
 
+*/
 ///
 // Drive Example
 ///

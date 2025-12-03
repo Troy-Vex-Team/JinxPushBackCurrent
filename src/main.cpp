@@ -12,22 +12,21 @@ using namespace ez;
 
 
 const int IN_SPEED = 127;
-const int DRIVE_SPEED = 120;
-const int TURN_SPEED = 120;
-const int SWING_SPEED = 120;
+const int DRIVE_SPEED = 30;
+const int TURN_SPEED = 30;
+const int SWING_SPEED = 30;
 const int timing = 500;
 
 
-pros::MotorGroup leftDrive({-9, -20, -16});
-pros::MotorGroup rightDrive({7, 10, 2});
+pros::MotorGroup leftDrive({-12, -5, -11});
+pros::MotorGroup rightDrive({9, 10, 15});
 
-pros::MotorGroup intake({-4,-6}, pros::MotorGearset::blue);
+pros::MotorGroup intake({-1,-2}, pros::MotorGearset::blue);
 pros::adi::Pneumatics lift('a', false);
 pros::adi::Pneumatics descorer('h', false);
-pros::Optical optical(1);
+pros::Optical optical(20);
 pros::adi::Pneumatics matchL('f', false);
 pros::adi::Pneumatics piston('g', false);
-pros::adi::Pneumatics index('f', false);
 
 
 
@@ -35,10 +34,10 @@ pros::adi::Pneumatics index('f', false);
 
 ez::Drive chassis(
     // These are your drive motors, the first motor is used for sensing!
-    {-9, -20, -16},     // Left Chassis Ports (negative port will reverse it!)
-    {7, 10, 2},  // Right Chassis Ports (negative port will reverse it!)
+    {-12, -5, -11},     // Left Chassis Ports (negative port will reverse it!)
+    {9, 10, 15},  // Right Chassis Ports (negative port will reverse it!)
 
-    5,      // IMU Port
+    19,      // IMU Port
     3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
     450);   // Wheel RPM = cartridge * (motor gear / wheel gear)
 
@@ -47,10 +46,10 @@ ez::Drive chassis(
 /*
 ez::Drive chassis(
     // These are your drive motors, the first motor is used for sensing!
-    {-9, -8, -7},     // Left Chassis Ports (negative port will reverse it!)
-    {5, 4, 3},  // Right Chassis Ports (negative port will reverse it!)
+    {-20, -19, -18},     // Left Chassis Ports (negative port will reverse it!)
+    {13, 12, 11},  // Right Chassis Ports (negative port will reverse it!)
 
-    4.125,      // IMU Port
+    5,      // IMU Port
     3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
     450); 
   
@@ -60,8 +59,8 @@ pros::adi::Pneumatics lift('a', false);
 pros::adi::Pneumatics descorer('h', false);
 pros::Optical optical(1);
 pros::adi::Pneumatics matchL('f', false);
+
 */
-  
 
 // Uncomment the trackers you're using here!
 // - `8` and `9` are smart ports (making these negative will reverse the sensor)
@@ -78,23 +77,9 @@ ez::tracking_wheel vert_tracker(17, 2.00, 5.5);   // This tracking wheel is para
  * to keep execution time for this mode under a few seconds.
  */
 
-/*
-void default_constants() {
-  // DRIVE
-  chassis.pid_drive_constants_forward_set(18.0, 0.0, 10.0);
-  chassis.pid_drive_constants_backward_set(15.0, 0.0, 10.0);
 
-  // TURN
-  //chassis.pid_turn_constants_set(18.0, 0.0, 10.0, 0.0);
 
-  // SWING
-  //chassis.pid_swing_constants_set(10.0, 0.0, 20.0);
-  // MAX SPEEDS
-  //chassis.pid_speed_max_set(127);
 
-}
-
-*/
 
   
 
@@ -127,7 +112,7 @@ void initialize() {
   // chassis.opcontrol_curve_buttons_left_set(pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT);  // If using tank, only the left side is used.
   // chassis.opcontrol_curve_buttons_right_set(pros::E_CONTROLLER_DIGITAL_Y, pros::E_CONTROLLER_DIGITAL_A);
 
-  // Autonomous Selector using LLEMU
+  /* Autonomous Selector using LLEMU
   ez::as::auton_selector.autons_add({
     {"red left corner", red_left_corner},
       {"Drive\n\nDrive forward and come back", drive_example},
@@ -145,6 +130,8 @@ void initialize() {
       {"Boomerang Pure Pursuit\n\nGo to (0, 24, 45) on the way to (24, 24) then come back to (0, 0, 0)", odom_boomerang_injected_pure_pursuit_example},
       {"Measure Offsets\n\nThis will turn the robot a bunch of times and calculate your offsets for your tracking wheels.", measure_offsets},
   });
+
+  */
 
   // Initialize chassis and auton selector
   chassis.initialize();
@@ -186,13 +173,27 @@ void competition_initialize() {
  * from where it left off.
  */
 
- void checkOptical(){
+ void checkOptical(){ // Built for debugging purposes and realtime
   while (true){
     ez::screen_print("Brightness: " + std::to_string(optical.get_brightness()), 0);
     ez::screen_print("Hue: " + std::to_string(optical.get_hue()), 1);
     ez::screen_print("R: " + std::to_string(optical.get_rgb().red), 2);
     ez::screen_print("G: " + std::to_string(optical.get_rgb().green), 3);
     ez::screen_print("B: " + std::to_string(optical.get_rgb().blue), 4);
+  }
+ }
+
+ void colorSort(){
+  while (true){
+    if (optical.get_hue() < 100){
+      //blue
+      descorer.set_value(true);
+    }
+    else{
+      //red
+      descorer.set_value(false);
+    }
+    pros::delay(100);
   }
  }
 
@@ -211,7 +212,7 @@ void outtake(){
 
 void intake_3(){
   intake_move();
-  delay(timing);
+  pros::delay(timing);
   chassis.pid_drive_set(28_in, DRIVE_SPEED, true);
   chassis.pid_wait();
   intake_stop();
@@ -224,7 +225,7 @@ void firstGoal(){
   chassis.pid_wait();
   lift.set_value(true);
   intake_move();
-  delay(timing);
+  pros::delay(timing);
   intake_stop();
   lift.set_value(false);
 }
@@ -313,28 +314,272 @@ void in5(){
   chassis.pid_turn_set(-160_deg, TURN_SPEED);
 }
 
-void skills_temp(){
-  
+
+void smoveML(){
+  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  //chassis.pid_drive_set(36_in, DRIVE_SPEED, true);
-  chassis.pid_drive_set(-36_in, -DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_wait();
+  
+}
+
+void smL(){
+  intake_move();
+  matchL.set_value(true);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  pros::delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
 }
 
 
-void red_right()
-{
-  //fill code here
+void sCrossLG(){
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(50_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_wait_quick_chain();
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_wait_quick_chain();
 }
 
-void blue_left()
-{
-  //fill code here
+void skills_120(){
+  smoveML();
+
+  smL();
+
+  chassis.pid_turn_set(180_deg, TURN_SPEED, true);
+  
+  sCrossLG();
+
+  smL();
+
+  chassis.pid_turn_set(180_deg, TURN_SPEED, true);
+
+
+  
 }
 
-void blue_right()
-{
-  //fill code here
+/*
+void skills_100(){
+  chassis.pid_drive_set(42_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(180_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(38_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  pros::delay(timing);
+  lift.set_value(false);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(80_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(180_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(34_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  pros::delay(timing);
+  lift.set_value(false);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(42_in, DRIVE_SPEED, true);
+  intake_move();
+  pros::delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(45_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
+  outtake();
+  prodelay(timing);
+  intake_stop();
+  chassis.pid_turn_set(-60_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(33_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(160_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  lift.set_value(false);
+  chassis.pid_turn_set(-70_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(35_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-20_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(180_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(42_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  lift.set_value(false);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(75_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
+  intake_move();
+  delay(timing);
+  intake_stop();
+  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(180_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
+  lift.set_value(true);
+  outtake();
+  delay(timing);
+  lift.set_value(false);
+  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(160_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(33_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(-30_deg, TURN_SPEED, true);
+  chassis.pid_drive_set(30_in, DRIVE_SPEED, true);
+
+
 }
+}
+*/
+
+
+
+/*
+void auto_pid_tune_simple() {
+
+  // CANDIDATES: adjust these to be reasonable for your robot
+  float drive_kP_candidates[] = {40.0, 50.0, 60.0};
+  float drive_kI_candidates[] = {0.0, 0.01, 0.02};
+  float drive_kD_candidates[] = {80.0, 100.0, 120.0};
+
+  float turn_kP_candidates[] = {5.0, 6.0, 7.0};
+  float turn_kI_candidates[] = {0.0, 0.02, 0.04};
+  float turn_kD_candidates[] = {30.0, 40.0, 50.0};
+  float turn_startI_candidates[] = {10.0, 15.0, 20.0};
+
+  
+  // Best found so far
+  float best_drive_kP = drive_kP_candidates[2];
+  float best_drive_kI = drive_kI_candidates[2];
+  float best_drive_kD = drive_kD_candidates[2];
+
+  float best_turn_kP = turn_kP_candidates[2];
+  float best_turn_kI = turn_kI_candidates[2];
+  float best_turn_kD = turn_kD_candidates[2];
+  float best_turn_startI = turn_startI_candidates[2];
+
+  float lowest_total_error = 1e6;
+
+  int runs = 0;
+  const int maxRuns = 100;  // cap runs so it doesn’t take forever
+
+  for (int ip = 0; runs < maxRuns && ip < (int)(sizeof(drive_kP_candidates) / sizeof(float)); ip++) {
+    for (int ii = 0; runs < maxRuns && ii < (int)(sizeof(drive_kI_candidates) / sizeof(float)); ii++) {
+      for (int id = 0; runs < maxRuns && id < (int)(sizeof(drive_kD_candidates) / sizeof(float)); id++) {
+        for (int tp = 0; runs < maxRuns && tp < (int)(sizeof(turn_kP_candidates) / sizeof(float)); tp++) {
+          for (int ti = 0; runs < maxRuns && ti < (int)(sizeof(turn_kI_candidates) / sizeof(float)); ti++) {
+            for (int td = 0; runs < maxRuns && td < (int)(sizeof(turn_kD_candidates) / sizeof(float)); td++) {
+              for (int ts = 0; runs < maxRuns && ts < (int)(sizeof(turn_startI_candidates) / sizeof(float)); ts++) {
+                // Set PID constants for this combo
+                chassis.pid_drive_constants_set(drive_kP_candidates[ip],
+                                                drive_kI_candidates[ii],
+                                                drive_kD_candidates[id]);
+
+                chassis.pid_turn_constants_set(turn_kP_candidates[tp],
+                                               turn_kI_candidates[ti],
+                                               turn_kD_candidates[td],
+                                               turn_startI_candidates[ts]);
+
+                // Reset sensors / pose
+                chassis.drive_sensor_reset();
+                chassis.drive_imu_reset();
+                chassis.odom_xyt_set(0_in, 0_in, 0_deg);
+
+                // --- DRIVE FORWARD TEST ---
+                chassis.pid_drive_set(8_in, DRIVE_SPEED, true);
+                chassis.pid_wait();
+                float driveError = fabs(chassis.odom_x_get() - 8.0);
+
+                // --- TURN TEST ---
+                chassis.pid_turn_set(90_deg, TURN_SPEED);
+                chassis.pid_wait();
+                float turnError = fabs(util::wrap_angle(chassis.odom_theta_get() - 90.0));
+
+                float totalError = driveError + turnError;
+
+
+                // Track best
+                if (totalError < lowest_total_error) {
+                  lowest_total_error = totalError;
+
+                  best_drive_kP = drive_kP_candidates[ip];
+                  best_drive_kI = drive_kI_candidates[ii];
+                  best_drive_kD = drive_kD_candidates[id];
+
+                  best_turn_kP = turn_kP_candidates[tp];
+                  best_turn_kI = turn_kI_candidates[ti];
+                  best_turn_kD = turn_kD_candidates[td];
+                  best_turn_startI = turn_startI_candidates[ts];
+                }
+
+                runs++;
+                pros::delay(400);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  screen_print("BEST SO FAR -> "
+               "Drive: kP=%.2f kI=%.1f kD=%.1f | "
+    "Turn: kP=%.2f kI=%.3f kD=%.1f startI=%.1f | "
+    "Err=%.2f",
+    best_drive_kP, best_drive_kI, best_drive_kD,
+    best_turn_kP, best_turn_kI, best_turn_kD, best_turn_startI,
+    lowest_total_error);
+}
+ */
+
+
+
+
 
 
 
@@ -343,7 +588,7 @@ void autonomous() {
   chassis.drive_imu_reset();                  // Reset gyro position to 0
   chassis.drive_sensor_reset();               // Reset drive sensors to 0
   chassis.odom_xyt_set(0_in, 0_in, 0_deg);    // Set the current position, you can start at a specific position with this
-  chassis.drive_brake_set(MOTOR_BRAKE_HOLD);  // Set motors to hold.  This helps autonomous consistency
+  chassis.drive_brake_set(E_MOTOR_BRAKE_COAST);  // Set motors to hold.  This helps autonomous consistency
 
   /*
   Odometry and Pure Pursuit are not magic
@@ -366,14 +611,17 @@ void autonomous() {
   pushback_auton_full();
   //in5();
   //skills_temp();
+  //PID_tester();
+  //auto_pid_tune_simple();
 
 
   //pushback_auton_full();
   //ez::as::auton_selector.selected_auton_call();  // Calls selected auton from autonomous selector
 }
+
 /*
 void PID_tester(){
- float kP = 2.0;   // How strong robot reacts to the size of the error
+ float kP = 5.0;   // How strong robot reacts to the size of the error
  float kI = 0.0;   // Fixes small errors as the robot runs
  float kD = 0.0;   // In a way, braking when the correction is too big
 
@@ -394,7 +642,7 @@ void PID_tester(){
 
 
  while (fabs(error)>1.0){
-   float current = (chassis.odom_x_get() + chassis.odom_y_get())/2.0;
+   //float current = (leftDrive.get_position() + rightDrive.get_position())/2.0;
    error = target - current;
    integral += error;
    derivative = error - prevError;
@@ -432,9 +680,10 @@ void PID_tester(){
 
 
  delay(500);
- printf("Final Position: %.2f\n |IMU: %.2f\n", (left_motors.get_position() + right_motors.get_position())/2.0, imu_sensor.get_rotation());
+ //printf("Final Position: %.2f\n |IMU: %.2f\n", (leftDrive.get_position() + rightDrive.get_position())/2.0, imu_sensor.get_rotation());
 }
-*/
+
+
 void sFirstML(){
   chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
   chassis.pid_turn_set(90_deg, TURN_SPEED);
@@ -545,6 +794,8 @@ void cross(){
 void skills(){
   sFirstML();
 }
+*/
+
 
 /**
  * Simplifies printing tracker values to the brain screen
@@ -655,19 +906,17 @@ void ez_template_extras() {
 
 void opcontrol() {
   // This is preference to what you like to drive on
+
   lift.set_value(true);
   descorer.set_value(false);
   matchL.set_value(true);
-  index.set_value(true);
   bool liftFlag = true;
   bool descoreFlag = false;
   bool matchFlag = true;
-  bool indexFlag = true;
 
   bool last_lift_state = true; 
   bool last_descore_state = false; 
   bool last_matchL_state = false;
-  bool last_index_state = false;
   // This is preference to what you like to drive on
   chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
 
@@ -678,7 +927,7 @@ void opcontrol() {
     //chassis.opcontrol_arcade_flipped(ez::SPLIT);
     // chassis.opcontrol_tank();  // Tank control
     chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
-    // chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
+    //chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     //chassis.opcontrol_arcade_standard(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
 
@@ -749,6 +998,7 @@ void opcontrol() {
     } else {
       intake_stop(); // Stop intake
     }
+
     bool current_lift_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_L1);
     
     if (current_lift_state && !last_lift_state) {
@@ -777,7 +1027,7 @@ void opcontrol() {
     }
     last_matchL_state = current_matchLoader_state;
 
-    bool current_index_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT);
+
     
     
 
