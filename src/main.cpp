@@ -26,6 +26,9 @@ pros::adi::Pneumatics lift('a', false);
 pros::adi::Pneumatics descorer('h', false);
 pros::Optical optical(1);
 pros::adi::Pneumatics matchL('f', false);
+pros::adi::Pneumatics piston('g', false);
+pros::adi::Pneumatics index('f', false);
+
 
 
 // Chassis constructor
@@ -220,7 +223,7 @@ void firstGoal(){
   chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
   lift.set_value(true);
-  outtake();
+  intake_move();
   delay(timing);
   intake_stop();
   lift.set_value(false);
@@ -236,7 +239,7 @@ void secondMiddle(){
   chassis.pid_turn_set(-90_deg, TURN_SPEED);
   chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
   chassis.pid_turn_set(-90_deg, TURN_SPEED);
-  outtake();
+  intake_move();
   chassis.pid_wait();
   
 }
@@ -310,7 +313,12 @@ void in5(){
   chassis.pid_turn_set(-160_deg, TURN_SPEED);
 }
 
-
+void skills_temp(){
+  
+  chassis.pid_wait();
+  //chassis.pid_drive_set(36_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(-36_in, -DRIVE_SPEED, true);
+}
 
 
 void red_right()
@@ -357,6 +365,7 @@ void autonomous() {
   //blue_right();
   pushback_auton_full();
   //in5();
+  //skills_temp();
 
 
   //pushback_auton_full();
@@ -470,12 +479,12 @@ void sFirstML(){
   intake_stop();
   chassis.pid_turn_set(-135_deg, TURN_SPEED, true);
   chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
-  outake();
+  outtake();
   delay(timing);
   chassis.pid_turn_set(90_deg, TURN_SPEED, true);
   chassis.pid_drive_set(15_in, DRIVE_SPEED, true);
   chassis.pid_turn_set(-45_deg, TURN_SPEED, true);
-  chassis.pid_drive_set(24_inch, DRIVE_SPEED, true);
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
   intake_move();
   delay(timing);
   intake_stop();
@@ -493,7 +502,7 @@ void sFirstML(){
   delay(timing);
   intake_stop();
   chassis.pid_drive_set(-4_in, DRIVE_SPEED, true);
-  chassis.pid_turn_set(180_deg_deg, TURN_SPEED);
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
   chassis.pid_drive_set(40_in, DRIVE_SPEED, true);
   lift.set_value(true);
   outtake();
@@ -531,7 +540,6 @@ void cross(){
   chassis.pid_wait();
   chassis.pid_turn_set(90_deg, SWING_SPEED, true);
   chassis.pid_wait();
-  
 }
 
 void skills(){
@@ -650,15 +658,18 @@ void opcontrol() {
   lift.set_value(true);
   descorer.set_value(false);
   matchL.set_value(true);
+  index.set_value(true);
   bool liftFlag = true;
   bool descoreFlag = false;
   bool matchFlag = true;
+  bool indexFlag = true;
 
   bool last_lift_state = true; 
   bool last_descore_state = false; 
   bool last_matchL_state = false;
+  bool last_index_state = false;
   // This is preference to what you like to drive on
-  chassis.drive_brake_set(MOTOR_BRAKE_COAST);
+  chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
 
   while (true) {
     // Gives you some extras to make EZ-Template ezier
@@ -757,13 +768,19 @@ void opcontrol() {
     }
     last_descore_state = current_descore_state;
 
+    
     bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
 
     if (current_matchLoader_state && !last_matchL_state){
-      matchFlag = !matchFlag;
-      matchL.set_value(matchFlag);
+    matchFlag = !matchFlag;
+    matchL.set_value(matchFlag);
     }
     last_matchL_state = current_matchLoader_state;
+
+    bool current_index_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT);
+    
+    
+
     
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME

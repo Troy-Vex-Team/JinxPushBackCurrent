@@ -1,7 +1,7 @@
 {
   "py/object": "pros.conductor.project.Project",
   "py/state": {
-    "project_name": "jinx",
+    "project_name": "jinx_auton_pid",
     "target": "v5",
     "templates": {
       "EZ-Template": {
@@ -425,8 +425,8 @@
     },
     "upload_options": {
       "description": "roboticsisez.com",
-      "icon": "pizza",
-      "slot": 2
+      "icon": "pros",
+      "slot": 3
     },
     "use_early_access": false
   }
