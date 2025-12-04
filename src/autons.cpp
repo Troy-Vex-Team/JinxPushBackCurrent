@@ -17,11 +17,11 @@ const int SWING_SPEED = 110;
 ///
 // Constants
 ///
-/*
+
 void default_constants() {
   // P, I, D, and Start I
-  chassis.pid_drive_constants_set(70.0, 0.0, 110.0);         // Fwd/rev constants, used for odom and non odom motions
-  chassis.pid_heading_constants_set(20.0, 0.0, 40.0);        // Holds the robot straight while going forward without odom
+  chassis.pid_drive_constants_set(90.0, 270.0, 90.0);         // Fwd/rev constants, used for odom and non odom motions
+  chassis.pid_heading_constants_set(6.0, 18.0, 6.0);        // Holds the robot straight while going forward without odom
   chassis.pid_turn_constants_set(8, 0.04, 40.0, 15.0);     // Turn in place constants
   chassis.pid_swing_constants_set(45, 0.0, 90.0);           // Swing constants
   chassis.pid_odom_angular_constants_set(6.5, 0.0, 52.5);    // Angular control for odom motions
@@ -38,9 +38,9 @@ void default_constants() {
   chassis.pid_drive_chain_constant_set(3_in);
 
   // Slew constants
-  chassis.slew_turn_constants_set(0_deg, 150);
-  chassis.slew_drive_constants_set(0_in, 150);
-  chassis.slew_swing_constants_set(0_in, 150);
+  chassis.slew_turn_constants_set(0_deg, 500);
+  chassis.slew_drive_constants_set(0_in, 500);
+  chassis.slew_swing_constants_set(0_in, 500);
 
   // The amount that turns are prioritized over driving in odom motions
   // - if you have tracking wheels, you can run this higher.  1.0 is the max
@@ -53,7 +53,7 @@ void default_constants() {
   chassis.pid_angle_behavior_set(ez::shortest);  // Changes the default behavior for turning, this defaults it to the shortest path there
 }
 
-*/
+
 ///
 // Drive Example
 ///

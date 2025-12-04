@@ -12,10 +12,11 @@ using namespace ez;
 
 
 const int IN_SPEED = 127;
-const int DRIVE_SPEED = 30;
-const int TURN_SPEED = 30;
-const int SWING_SPEED = 30;
-const int timing = 500;
+// Bump drive-related speeds to make autonomous motions faster (max is 127)
+const int DRIVE_SPEED = 127;
+const int TURN_SPEED = 127;
+const int SWING_SPEED = 100;
+const int timing = 1000;
 
 
 pros::MotorGroup leftDrive({-12, -5, -11});
@@ -39,7 +40,7 @@ ez::Drive chassis(
 
     19,      // IMU Port
     3.25,  // Wheel Diameter (Remember, 4" wheels without screw holes are actually 4.125!)
-    450);   // Wheel RPM = cartridge * (motor gear / wheel gear)
+    600);   // Wheel RPM = cartridge * (motor gear / wheel gear)
 
   
 
@@ -106,7 +107,7 @@ void initialize() {
    // Defaults for curve. If using tank, only the first parameter is used. (Comment this line out if you have an SD card!)
 
   // Set the drive to your own constants from autons.cpp!
-  //default_constants();
+  default_constants();
 
   // These are already defaulted to these buttons, but you can change the left/right curve buttons here!
   // chassis.opcontrol_curve_buttons_left_set(pros::E_CONTROLLER_DIGITAL_LEFT, pros::E_CONTROLLER_DIGITAL_RIGHT);  // If using tank, only the left side is used.
@@ -219,36 +220,39 @@ void intake_3(){
 }
 
 void firstGoal(){
-  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_turn_set(-90_deg, TURN_SPEED);
   chassis.pid_wait();
   chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  lift.set_value(true);
-  intake_move();
+  matchL.set_value(true);
+  outtake();
   pros::delay(timing);
   intake_stop();
-  lift.set_value(false);
+  matchL.set_value(false);
 }
 
-void secondMiddle(){
+void second_Middle(){
+  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(90_deg, TURN_SPEED);
+  chassis.pid_turn_set(45_deg, TURN_SPEED, true);
   chassis.pid_wait();
   intake_move();
-  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
+  pros::delay(timing);
+  intake_stop();
+  chassis.pid_turn_set(45_deg, TURN_SPEED);
+  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(-90_deg, TURN_SPEED);
-  chassis.pid_drive_set(12_in, DRIVE_SPEED, true);
-  chassis.pid_turn_set(-90_deg, TURN_SPEED);
-  intake_move();
-  chassis.pid_wait();
+  outtake();
+  pros::delay(timing);
+  intake_stop();
   
 }
 
 void intake_3Right(){
-  chassis.pid_drive_set(-20_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(190_deg, TURN_SPEED);
+  chassis.pid_turn_set(-180_deg, TURN_SPEED);
   chassis.pid_wait();
   intake_move();
   chassis.pid_drive_set(35_in, DRIVE_SPEED, true);
@@ -259,7 +263,7 @@ void intake_3Right(){
 void longGoal() {
   chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(-180_deg, TURN_SPEED);
+  chassis.pid_turn_set(180_deg, TURN_SPEED);
   chassis.pid_wait();
   outtake();
   chassis.pid_drive_set(20_in, DRIVE_SPEED, true);
@@ -280,11 +284,12 @@ void in5(){
   
   
   // Move to second middle goal and outtake 1
-  //secondMiddle();
+  second_Middle();
 
   // Take the 3 group on the right side of the field
   //intake_3Right();
 
+  //longGoal();
 
 }
 
@@ -368,6 +373,13 @@ void skills_120(){
 
 
   
+}
+
+void pid_code(){
+  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  chassis.pid_wait();
+  double lateral = chassis.odom_y_get();
+  screen_print(std::to_string(lateral));
 }
 
 /*
@@ -604,15 +616,8 @@ void autonomous() {
   */
   
   // choose 1, comment the rest
-  //left_simple();
-  //red_right();
-  //blue_left();
-  //blue_right();
   pushback_auton_full();
-  //in5();
-  //skills_temp();
-  //PID_tester();
-  //auto_pid_tune_simple();
+  //pid_code();
 
 
   //pushback_auton_full();
@@ -918,15 +923,15 @@ void opcontrol() {
   bool last_descore_state = false; 
   bool last_matchL_state = false;
   // This is preference to what you like to drive on
-  chassis.drive_brake_set(MOTOR_BRAKE_HOLD);
+  chassis.drive_brake_set(E_MOTOR_BRAKE_COAST);
 
   while (true) {
     // Gives you some extras to make EZ-Template ezier
     ez_template_extras();
 
     //chassis.opcontrol_arcade_flipped(ez::SPLIT);
-    // chassis.opcontrol_tank();  // Tank control
-    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+    chassis.opcontrol_tank();  // Tank control
+    //chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
     //chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     //chassis.opcontrol_arcade_standard(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
