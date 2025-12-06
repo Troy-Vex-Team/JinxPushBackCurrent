@@ -22,12 +22,13 @@ const int timing = 1000;
 pros::MotorGroup leftDrive({-12, -5, -11});
 pros::MotorGroup rightDrive({9, 10, 15});
 
-pros::MotorGroup intake({-1,-2}, pros::MotorGearset::blue);
-pros::adi::Pneumatics lift('a', false);
-pros::adi::Pneumatics descorer('h', false);
+pros::MotorGroup intake({-1}, pros::MotorGearset::blue);
+pros::MotorGroup indexer({-2}, pros::MotorGearset::green);
+pros::adi::Pneumatics dpactivation('d', false);
+pros::adi::Pneumatics descorer('c', false);
 pros::Optical optical(20);
-pros::adi::Pneumatics matchL('f', false);
-pros::adi::Pneumatics piston('g', false);
+pros::adi::Pneumatics matchL('a', false);
+pros::adi::Pneumatics dp('h', false);
 
 
 
@@ -188,7 +189,8 @@ void competition_initialize() {
   while (true){
     if (optical.get_hue() < 100){
       //blue
-      descorer.set_value(true);
+      
+
     }
     else{
       //red
@@ -234,7 +236,7 @@ void firstGoal(){
 void second_Middle(){
   chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(45_deg, TURN_SPEED, true);
+  chassis.pid_turn_set(-45_deg, TURN_SPEED, true);
   chassis.pid_wait();
   intake_move();
   chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
@@ -376,9 +378,9 @@ void skills_120(){
 }
 
 void pid_code(){
-  chassis.pid_drive_set(24_in, DRIVE_SPEED, true);
+  chassis.pid_turn_set(90_deg, DRIVE_SPEED, true);
   chassis.pid_wait();
-  double lateral = chassis.odom_y_get();
+  double lateral = chassis.odom_theta_get();
   screen_print(std::to_string(lateral));
 }
 
@@ -488,111 +490,6 @@ void skills_100(){
 }
 }
 */
-
-
-
-/*
-void auto_pid_tune_simple() {
-
-  // CANDIDATES: adjust these to be reasonable for your robot
-  float drive_kP_candidates[] = {40.0, 50.0, 60.0};
-  float drive_kI_candidates[] = {0.0, 0.01, 0.02};
-  float drive_kD_candidates[] = {80.0, 100.0, 120.0};
-
-  float turn_kP_candidates[] = {5.0, 6.0, 7.0};
-  float turn_kI_candidates[] = {0.0, 0.02, 0.04};
-  float turn_kD_candidates[] = {30.0, 40.0, 50.0};
-  float turn_startI_candidates[] = {10.0, 15.0, 20.0};
-
-  
-  // Best found so far
-  float best_drive_kP = drive_kP_candidates[2];
-  float best_drive_kI = drive_kI_candidates[2];
-  float best_drive_kD = drive_kD_candidates[2];
-
-  float best_turn_kP = turn_kP_candidates[2];
-  float best_turn_kI = turn_kI_candidates[2];
-  float best_turn_kD = turn_kD_candidates[2];
-  float best_turn_startI = turn_startI_candidates[2];
-
-  float lowest_total_error = 1e6;
-
-  int runs = 0;
-  const int maxRuns = 100;  // cap runs so it doesn’t take forever
-
-  for (int ip = 0; runs < maxRuns && ip < (int)(sizeof(drive_kP_candidates) / sizeof(float)); ip++) {
-    for (int ii = 0; runs < maxRuns && ii < (int)(sizeof(drive_kI_candidates) / sizeof(float)); ii++) {
-      for (int id = 0; runs < maxRuns && id < (int)(sizeof(drive_kD_candidates) / sizeof(float)); id++) {
-        for (int tp = 0; runs < maxRuns && tp < (int)(sizeof(turn_kP_candidates) / sizeof(float)); tp++) {
-          for (int ti = 0; runs < maxRuns && ti < (int)(sizeof(turn_kI_candidates) / sizeof(float)); ti++) {
-            for (int td = 0; runs < maxRuns && td < (int)(sizeof(turn_kD_candidates) / sizeof(float)); td++) {
-              for (int ts = 0; runs < maxRuns && ts < (int)(sizeof(turn_startI_candidates) / sizeof(float)); ts++) {
-                // Set PID constants for this combo
-                chassis.pid_drive_constants_set(drive_kP_candidates[ip],
-                                                drive_kI_candidates[ii],
-                                                drive_kD_candidates[id]);
-
-                chassis.pid_turn_constants_set(turn_kP_candidates[tp],
-                                               turn_kI_candidates[ti],
-                                               turn_kD_candidates[td],
-                                               turn_startI_candidates[ts]);
-
-                // Reset sensors / pose
-                chassis.drive_sensor_reset();
-                chassis.drive_imu_reset();
-                chassis.odom_xyt_set(0_in, 0_in, 0_deg);
-
-                // --- DRIVE FORWARD TEST ---
-                chassis.pid_drive_set(8_in, DRIVE_SPEED, true);
-                chassis.pid_wait();
-                float driveError = fabs(chassis.odom_x_get() - 8.0);
-
-                // --- TURN TEST ---
-                chassis.pid_turn_set(90_deg, TURN_SPEED);
-                chassis.pid_wait();
-                float turnError = fabs(util::wrap_angle(chassis.odom_theta_get() - 90.0));
-
-                float totalError = driveError + turnError;
-
-
-                // Track best
-                if (totalError < lowest_total_error) {
-                  lowest_total_error = totalError;
-
-                  best_drive_kP = drive_kP_candidates[ip];
-                  best_drive_kI = drive_kI_candidates[ii];
-                  best_drive_kD = drive_kD_candidates[id];
-
-                  best_turn_kP = turn_kP_candidates[tp];
-                  best_turn_kI = turn_kI_candidates[ti];
-                  best_turn_kD = turn_kD_candidates[td];
-                  best_turn_startI = turn_startI_candidates[ts];
-                }
-
-                runs++;
-                pros::delay(400);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  screen_print("BEST SO FAR -> "
-               "Drive: kP=%.2f kI=%.1f kD=%.1f | "
-    "Turn: kP=%.2f kI=%.3f kD=%.1f startI=%.1f | "
-    "Err=%.2f",
-    best_drive_kP, best_drive_kI, best_drive_kD,
-    best_turn_kP, best_turn_kI, best_turn_kD, best_turn_startI,
-    lowest_total_error);
-}
- */
-
-
-
-
-
 
 
 void autonomous() {
@@ -912,14 +809,17 @@ void ez_template_extras() {
 void opcontrol() {
   // This is preference to what you like to drive on
 
-  lift.set_value(true);
+  dpactivation.set_value(false);
+  dp.set_value(false);
   descorer.set_value(false);
   matchL.set_value(true);
-  bool liftFlag = true;
+  bool dpactivationFlag = false;
   bool descoreFlag = false;
   bool matchFlag = true;
+  bool dpFlag = false;
 
-  bool last_lift_state = true; 
+  bool last_dpactivation_state = false; 
+  bool last_dp_state = false;
   bool last_descore_state = false; 
   bool last_matchL_state = false;
   // This is preference to what you like to drive on
@@ -930,8 +830,8 @@ void opcontrol() {
     ez_template_extras();
 
     //chassis.opcontrol_arcade_flipped(ez::SPLIT);
-    chassis.opcontrol_tank();  // Tank control
-    //chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
+    //chassis.opcontrol_tank();  // Tank control
+    chassis.opcontrol_arcade_standard(ez::SPLIT);   // Standard split arcade
     //chassis.opcontrol_arcade_standard(ez::SINGLE);  // Standard single arcade
     //chassis.opcontrol_arcade_standard(ez::SPLIT);    // Flipped split arcade
     // chassis.opcontrol_arcade_flipped(ez::SINGLE);   // Flipped single arcade
@@ -1004,15 +904,15 @@ void opcontrol() {
       intake_stop(); // Stop intake
     }
 
-    bool current_lift_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_L1);
+    bool current_dpactivation_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
     
-    if (current_lift_state && !last_lift_state) {
-      liftFlag = !liftFlag;
-      lift.set_value(liftFlag);
+    if (current_dpactivation_state && !last_dpactivation_state) {
+      dpactivationFlag = !dpactivationFlag;
+      dpactivation.set_value(dpactivationFlag);
     
     }
     
-    last_lift_state = current_lift_state;
+    last_dpactivation_state = current_dpactivation_state;
 
     bool current_descore_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_L2);
     
@@ -1024,7 +924,7 @@ void opcontrol() {
     last_descore_state = current_descore_state;
 
     
-    bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
+    bool current_matchLoader_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_L1);
 
     if (current_matchLoader_state && !last_matchL_state){
     matchFlag = !matchFlag;
@@ -1032,11 +932,14 @@ void opcontrol() {
     }
     last_matchL_state = current_matchLoader_state;
 
+    bool current_dp_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_X);
 
-    
-    
+    if (current_dp_state && !last_dp_state){
+    dpFlag = !dpFlag;
+    matchL.set_value(dpFlag);
+    }
+    last_dp_state = current_dp_state;
 
-    
 
     pros::delay(ez::util::DELAY_TIME);  // This is used for timer calculations!  Keep this ez::util::DELAY_TIME
   }

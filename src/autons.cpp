@@ -38,9 +38,9 @@ void default_constants() {
   chassis.pid_drive_chain_constant_set(3_in);
 
   // Slew constants
-  chassis.slew_turn_constants_set(0_deg, 500);
-  chassis.slew_drive_constants_set(0_in, 500);
-  chassis.slew_swing_constants_set(0_in, 500);
+  chassis.slew_turn_constants_set(0_deg, 1000);
+  chassis.slew_drive_constants_set(0_in, 1000);
+  chassis.slew_swing_constants_set(0_in, 1000);
 
   // The amount that turns are prioritized over driving in odom motions
   // - if you have tracking wheels, you can run this higher.  1.0 is the max
