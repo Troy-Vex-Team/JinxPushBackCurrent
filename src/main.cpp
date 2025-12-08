@@ -13,8 +13,8 @@ using namespace ez;
 
 const int IN_SPEED = 127;
 // Bump drive-related speeds to make autonomous motions faster (max is 127)
-const int DRIVE_SPEED = 127;
-const int TURN_SPEED = 127;
+const int DRIVE_SPEED = 30;
+const int TURN_SPEED = 30;
 const int SWING_SPEED = 100;
 const int timing = 1000;
 
@@ -185,20 +185,18 @@ void competition_initialize() {
   }
  }
 
- void colorSort(){
-  while (true){
-    if (optical.get_hue() < 100){
-      //blue
-      
 
-    }
-    else{
-      //red
-      descorer.set_value(false);
-    }
-    pros::delay(100);
-  }
+ void indexer_move(){
+  indexer.move(IN_SPEED);
  }
+  void indexer_stop(){
+    indexer.move(0);
+    indexer.brake();
+  }
+
+  void indexer_reverse(){
+    indexer.move(-IN_SPEED);
+  }
 
  void intake_move(){
   intake.move(IN_SPEED);
@@ -216,7 +214,7 @@ void outtake(){
 void intake_3(){
   intake_move();
   pros::delay(timing);
-  chassis.pid_drive_set(28_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(38_in, DRIVE_SPEED, true);
   chassis.pid_wait();
   intake_stop();
 }
@@ -224,7 +222,7 @@ void intake_3(){
 void firstGoal(){
   chassis.pid_turn_set(-90_deg, TURN_SPEED);
   chassis.pid_wait();
-  chassis.pid_drive_set(10_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(15_in, DRIVE_SPEED, true);
   chassis.pid_wait();
   matchL.set_value(true);
   outtake();
@@ -234,10 +232,9 @@ void firstGoal(){
 }
 
 void second_Middle(){
-  chassis.pid_drive_set(-10_in, DRIVE_SPEED, true);
+  chassis.pid_drive_set(-15_in, DRIVE_SPEED, true);
   chassis.pid_wait();
-  chassis.pid_turn_set(-45_deg, TURN_SPEED, true);
-  chassis.pid_wait();
+  chassis.pid_turn_set(315_deg, TURN_SPEED);
   intake_move();
   chassis.pid_drive_set(48_in, DRIVE_SPEED, true);
   pros::delay(timing);
@@ -384,6 +381,30 @@ void pid_code(){
   screen_print(std::to_string(lateral));
 }
 
+void colorSort(){
+  while (true){
+    if (optical.get_hue() >= 100){
+      //blue
+      indexer_reverse();
+      intake_move();
+      pros::delay(50);
+      indexer_stop();
+      intake_stop();
+
+    }
+    else{
+      //red
+      
+    }
+    
+  }
+ }
+
+void cs_test(){
+  intake_move();
+  colorSort();
+}
+
 /*
 void skills_100(){
   chassis.pid_drive_set(42_in, DRIVE_SPEED, true);
@@ -515,6 +536,7 @@ void autonomous() {
   // choose 1, comment the rest
   pushback_auton_full();
   //pid_code();
+  //cs_test();
 
 
   //pushback_auton_full();
@@ -902,6 +924,14 @@ void opcontrol() {
       outtake(); // Intake out
     } else {
       intake_stop(); // Stop intake
+    }
+
+    if (master.get_digital(DIGITAL_A)) {
+      indexer_move(); // Intake in
+    } else if (master.get_digital(DIGITAL_B)) {
+      indexer_reverse(); // Intake out
+    } else {
+      indexer_stop(); // Stop intake
     }
 
     bool current_dpactivation_state = master.get_digital(pros::E_CONTROLLER_DIGITAL_Y);
